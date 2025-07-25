@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const visitanteRoutes = require('./routes/visitanteRoutes');
 const vigilanteRoutes = require('./routes/vigilanteRoutes');
@@ -10,7 +11,6 @@ const PORT = 3001;
 
 app.use(cors());              
 app.use(bodyParser.json());  
-
 
 app.use('/api/visitantes', visitanteRoutes);
 app.use('/api/vigilantes', vigilanteRoutes);

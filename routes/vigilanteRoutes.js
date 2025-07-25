@@ -1,41 +1,40 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../models/db");
+const pool = require("../models/db"); 
 
-router.post("/registrar", (req, res) => {
+router.post("/registrar", async (req, res) => {
   const { documento, nombre, genero } = req.body;
 
-  const sql = `INSERT INTO vigilante (documento, nombre, genero) VALUES (?, ?, ?)`;
-
-  db.query(sql, [documento, nombre, genero], (err, result) => {
-    if (err) {
-      console.error("Error al registrar:", err);
-      return res.status(500).json({ error: "Error al registrar vigilante" });
-    }
+  try {
+    const sql = `INSERT INTO vigilante (documento, nombre, genero) VALUES (?, ?, ?)`;
+    await pool.query(sql, [documento, nombre, genero]);
     res.status(201).json({ mensaje: "Vigilante registrado correctamente" });
-  });
+  } catch (err) {
+    console.error("Error al registrar vigilante:", err);
+    res.status(500).json({ error: "Error al registrar vigilante" });
+  }
 });
 
-router.get("/", (req, res) => {
-  const sql = `SELECT * FROM vigilante`;
-
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error("Error al obtener vigilantes:", err);
-      return res.status(500).json({ error: "Error al obtener vigilantes" });
-    }
-    res.json(results);
-  });
+router.get("/", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT * FROM vigilante`);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error al obtener vigilantes:", err);
+    res.status(500).json({ error: "Error al obtener vigilantes" });
+  }
 });
 
-
-router.delete("/:documento", (req, res) => {
+router.delete("/:documento", async (req, res) => {
   const documento = req.params.documento;
-  const query = "DELETE FROM vigilante WHERE documento = ?";
-  db.query(query, [documento], (err, result) => {
-    if (err) return res.status(500).json({ error: "Error al eliminar vigilante" });
+  try {
+    const sql = "DELETE FROM vigilante WHERE documento = ?";
+    await pool.query(sql, [documento]);
     res.json({ mensaje: "Vigilante eliminado correctamente" });
-  });
+  } catch (err) {
+    console.error("Error al eliminar vigilante:", err);
+    res.status(500).json({ error: "Error al eliminar el vigilante" });
+  }
 });
 
 module.exports = router;
