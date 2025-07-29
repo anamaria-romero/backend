@@ -1,22 +1,42 @@
-const db = require('../models/db');
+const pool = require('../models/db');
 
-exports.registrarVigilante = (req, res) => {
-  const { documento, nombre, genero } = req.body;
-
-  const query = `INSERT INTO vigilante (documento, nombre, genero) VALUES (?, ?, ?)`;
-
-  db.query(query, [documento, nombre, genero], (err, result) => {
-    if (err) return res.status(500).json({ error: 'Error al registrar vigilante' });
-    res.status(201).json({ mensaje: 'Vigilante registrado correctamente' });
-  });
+const registrarVigilante = async (req, res) => {
+  try {
+    const { documento, nombre, apellido } = req.body;
+    const [resultado] = await pool.query(
+      'INSERT INTO vigilantes (documento, nombre, apellido) VALUES (?, ?, ?)',
+      [documento, nombre, apellido]
+    );
+    res.status(201).json({ mensaje: "Vigilante registrado correctamente", resultado });
+  } catch (error) {
+    console.error("Error al registrar vigilante:", error); 
+    res.status(500).json({ error: "Error al registrar vigilante", detalle: error.message });
+  }
 };
 
-exports.obtenerVigilantes = (req, res) => {
-  const query = `SELECT * FROM vigilante`;
-
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ error: 'Error al obtener vigilantes' });
-    res.json(results);
-  });
+const obtenerVigilantes = async (req, res) => {
+  try {
+    const [vigilantes] = await pool.query('SELECT * FROM vigilantes');
+    res.json(vigilantes);
+  } catch (error) {
+    console.error("Error al obtener vigilantes:", error);
+    res.status(500).json({ error: "Error al obtener vigilantes", detalle: error.message });
+  }
 };
 
+const eliminarVigilante = async (req, res) => {
+  try {
+    const documento = req.params.documento;
+    const [resultado] = await pool.query('DELETE FROM vigilantes WHERE documento = ?', [documento]);
+    res.json({ mensaje: "Vigilante eliminado correctamente", resultado });
+  } catch (error) {
+    console.error("Error al eliminar vigilante:", error);
+    res.status(500).json({ error: "Error al eliminar vigilante", detalle: error.message });
+  }
+};
+
+module.exports = {
+  registrarVigilante,
+  obtenerVigilantes,
+  eliminarVigilante
+};
