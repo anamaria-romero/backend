@@ -2,10 +2,10 @@ const pool = require('../models/db');
 
 const registrarVigilante = async (req, res) => {
   try {
-    const { documento, nombre, apellido } = req.body;
+    const { documento, nombre, genero } = req.body; 
     const [resultado] = await pool.query(
-      'INSERT INTO vigilante (documento, nombre, apellido) VALUES (?, ?, ?)',
-      [documento, nombre, apellido]
+      'INSERT INTO vigilante (documento, nombre, genero) VALUES (?, ?, ?)', 
+      [documento, nombre, genero]
     );
     res.status(201).json({ mensaje: "Vigilante registrado correctamente", resultado });
   } catch (error) {
