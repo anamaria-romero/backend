@@ -9,8 +9,7 @@ const registrarVigilante = async (req, res) => {
       [documento, nombre, genero, usuario, contrasena]
     );
 
-res.status(201).json({ mensaje: "Vigilante registrado correctamente", resultado: result });
-
+    res.status(201).json({ mensaje: "Vigilante registrado correctamente", resultado: result });
   } catch (error) {
     console.error("Error al registrar vigilante:", error);
     res.status(500).json({ error: "Error al registrar vigilante", detalle: error.message });
