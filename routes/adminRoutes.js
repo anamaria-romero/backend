@@ -5,6 +5,6 @@ const adminController = require('../controllers/adminController.js');
 router.get('/', adminController.obtenerAdministradores);
 router.post('/', adminController.registrarAdministrador);
 router.post('/login', adminController.loginAdministrador);
-router.delete('/administrador/:documento', eliminarAdministrador);
+router.delete('/eliminar/:documento', adminController.eliminarAdministrador); 
 
 module.exports = router;
