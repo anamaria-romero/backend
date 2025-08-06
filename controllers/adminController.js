@@ -43,3 +43,17 @@ exports.loginAdministrador = async (req, res) => {
   }
 };
 
+exports.eliminarAdministrador = async (req, res) => {
+  const { documento } = req.params;
+
+  try {
+    const [result] = await pool.query('DELETE FROM administrador WHERE documento = ?', [documento]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Administrador no encontrado' });
+    }
+    res.status(200).json({ mensaje: 'Administrador eliminado correctamente' });
+  } catch (err) {
+    console.error("Error al eliminar administrador:", err);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
