@@ -49,8 +49,13 @@ const obtenerVigilantes = async (req, res) => {
 
 const eliminarVigilante = async (req, res) => {
   try {
-    const documento = req.params.documento;
+    const { documento } = req.params;
     const [resultado] = await pool.query('DELETE FROM vigilante WHERE documento = ?', [documento]);
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ mensaje: "Vigilante no encontrado" });
+    }
+
     res.json({ mensaje: "Vigilante eliminado correctamente", resultado });
   } catch (error) {
     console.error("Error al eliminar vigilante:", error);
