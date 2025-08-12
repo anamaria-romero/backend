@@ -97,3 +97,13 @@ exports.buscarPorDocumento = async (req, res) => {
     res.status(500).json({ mensaje: "Error en el servidor" });
   }
 };
+
+exports.obtenerTodos = async (req, res) => {
+  try {
+    const [results] = await pool.query(`SELECT * FROM visitantes ORDER BY id DESC`);
+    res.json(results);
+  } catch (err) {
+    console.error("Error al obtener visitantes:", err);
+    res.status(500).json({ error: 'Error al obtener visitantes' });
+  }
+};
