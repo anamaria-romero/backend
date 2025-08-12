@@ -125,15 +125,16 @@ exports.descargarPDF = async (req, res) => {
     const usableWidth = pageWidth - margin * 2;
     const colWidths = [40, 160, 100, 70, 70, 70]; 
     const rowHeight = 20;
-    const headerHeight = 80;
+    const headerHeight = 100; 
     const tableTop = margin + headerHeight;
-    const footerHeight = 30;
 
     const logoPath = path.join(__dirname, '../assets/logo.png');
     const hasLogo = fs.existsSync(logoPath);
 
     function drawHeader() {
-      const titleY = margin;
+      let titleY = margin;
+      
+      // Logo
       if (hasLogo) {
         try {
           doc.image(logoPath, margin, titleY, { width: 60 });
@@ -141,19 +142,19 @@ exports.descargarPDF = async (req, res) => {
           console.error('Error al cargar logo en PDF:', err);
         }
       }
+
       doc.font('Helvetica-Bold').fontSize(16).fillColor('#0b5ed7')
-        .text('Reporte de Visitantes', hasLogo ? margin + 70 : margin, titleY + 5, {
-          width: usableWidth - (hasLogo ? 70 : 0),
+        .text('Reporte de Visitantes', margin, titleY, {
+          width: usableWidth,
           align: 'center'
         });
 
-      // Fecha y total
       doc.font('Helvetica').fontSize(10).fillColor('black')
-        .text(`Fecha de generación: ${fechaGeneracion}`, margin, titleY + 35, { align: 'left' })
-        .text(`Total de visitantes: ${totalVisitantes}`, margin, titleY + 50, { align: 'left' });
+        .text(`Fecha de generación: ${fechaGeneracion}`, margin, titleY + 50, { align: 'left' })
+        .text(`Total de visitantes: ${totalVisitantes}`, margin, titleY + 65, { align: 'left' });
 
-      doc.moveTo(margin, margin + 65)
-        .lineTo(margin + usableWidth, margin + 65)
+      doc.moveTo(margin, margin + 85)
+        .lineTo(margin + usableWidth, margin + 85)
         .lineWidth(0.5).strokeColor('#e0e0e0').stroke();
     }
 
@@ -171,26 +172,15 @@ exports.descargarPDF = async (req, res) => {
       return y + rowHeight;
     }
 
-    function drawFooter(pageNum) {
-      const footerText = `Página ${pageNum}`;
-      doc.font('Helvetica').fontSize(9).fillColor('gray')
-        .text(footerText, margin, pageHeight - margin + 5, {
-          width: usableWidth,
-          align: 'center'
-        });
-    }
-
-    let currentPage = 1;
+    let y = tableTop;
     drawHeader();
-    let y = drawTableHeader(tableTop);
+    y = drawTableHeader(y);
 
     for (let i = 0; i < rows.length; i++) {
       const v = rows[i];
 
-      if (y + rowHeight > pageHeight - margin - footerHeight) {
-        drawFooter(currentPage);
+      if (y + rowHeight > pageHeight - margin) {
         doc.addPage();
-        currentPage++;
         drawHeader();
         y = drawTableHeader(tableTop);
       }
@@ -210,7 +200,6 @@ exports.descargarPDF = async (req, res) => {
       y += rowHeight;
     }
 
-    drawFooter(currentPage);
     doc.end();
   } catch (error) {
     console.error('Error al generar PDF:', error);
