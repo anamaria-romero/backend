@@ -6,6 +6,7 @@ require("dotenv").config();
 const visitanteRoutes = require("./routes/visitanteRoutes");
 const vigilanteRoutes = require("./routes/vigilanteRoutes");
 const adminRoutes = require('./routes/adminRoutes');
+const reportesRoutes = require('./routes/reportesRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/api/visitantes", visitanteRoutes);
 app.use("/api/vigilantes", vigilanteRoutes);
 app.use('/api/administradores', adminRoutes);
+app.use('/api/reportes', reportesRoutes);
 
 app.get("/api/test-db", async (req, res) => {
   try {
