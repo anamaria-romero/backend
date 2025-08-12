@@ -8,5 +8,6 @@ router.get('/activos', visitanteController.obtenerVisitantesActivos);
 router.get('/reporte', visitanteController.reportePorFecha);
 router.get('/buscar/:documento', visitanteController.buscarPorDocumento); 
 router.get('/', visitanteController.obtenerTodos);
+router.put('/:id', visitanteController.actualizarVisitante);
 
 module.exports = router;

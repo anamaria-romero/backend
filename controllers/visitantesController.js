@@ -107,3 +107,26 @@ exports.obtenerTodos = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener visitantes' });
   }
 };
+
+exports.actualizarVisitante = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, documento, dependencia, funcionario, documentoVigilante } = req.body;
+
+  try {
+    const [result] = await pool.query(
+      `UPDATE visitantes 
+       SET nombre = ?, documento = ?, dependencia = ?, funcionario = ?, documentoVigilante = ?
+       WHERE id = ?`,
+      [nombre, documento, dependencia, funcionario, documentoVigilante, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ mensaje: "Visitante no encontrado" });
+    }
+
+    res.json({ mensaje: "Visitante actualizado correctamente" });
+  } catch (err) {
+    console.error("Error al actualizar visitante:", err);
+    res.status(500).json({ error: "Error al actualizar visitante" });
+  }
+};
