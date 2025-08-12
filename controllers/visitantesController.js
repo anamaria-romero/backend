@@ -110,14 +110,14 @@ exports.obtenerTodos = async (req, res) => {
 
 exports.actualizarVisitante = async (req, res) => {
   const { id } = req.params;
-  const { nombre, documento, dependencia, funcionario, documentoVigilante } = req.body;
+  const { nombre, documento, dependencia, funcionario } = req.body;
 
   try {
     const [result] = await pool.query(
       `UPDATE visitantes 
-       SET nombre = ?, documento = ?, dependencia = ?, funcionario = ?, documentoVigilante = ?
+       SET nombre = ?, documento = ?, dependencia = ?, funcionario = ?,
        WHERE id = ?`,
-      [nombre, documento, dependencia, funcionario, documentoVigilante, id]
+      [nombre, documento, dependencia, funcionario, id]
     );
 
     if (result.affectedRows === 0) {
