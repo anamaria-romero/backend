@@ -109,6 +109,9 @@ exports.descargarPDF = async (req, res) => {
       [fechaInicio, fechaFin]
     );
 
+    const totalVisitantes = rows.length;
+    const fechaGeneracion = moment().format('DD-MM-YYYY HH:mm');
+
     const doc = new PDFDocument({ margin: 40, size: 'A4' });
     const filename = `reporte_${moment().format('YYYY-MM-DD')}.pdf`;
 
@@ -122,7 +125,7 @@ exports.descargarPDF = async (req, res) => {
     const usableWidth = pageWidth - margin * 2;
     const colWidths = [40, 160, 100, 70, 70, 70]; 
     const rowHeight = 20;
-    const headerHeight = 60;
+    const headerHeight = 80;
     const tableTop = margin + headerHeight;
     const footerHeight = 30;
 
@@ -139,11 +142,19 @@ exports.descargarPDF = async (req, res) => {
         }
       }
       doc.font('Helvetica-Bold').fontSize(16).fillColor('#0b5ed7')
-        .text('Reporte de Visitantes', hasLogo ? margin + 70 : margin, titleY + 10, {
+        .text('Reporte de Visitantes', hasLogo ? margin + 70 : margin, titleY + 5, {
           width: usableWidth - (hasLogo ? 70 : 0),
           align: 'center'
         });
-      doc.moveTo(margin, margin + 45).lineTo(margin + usableWidth, margin + 45).lineWidth(0.5).strokeColor('#e0e0e0').stroke();
+
+      // Fecha y total
+      doc.font('Helvetica').fontSize(10).fillColor('black')
+        .text(`Fecha de generación: ${fechaGeneracion}`, margin, titleY + 35, { align: 'left' })
+        .text(`Total de visitantes: ${totalVisitantes}`, margin, titleY + 50, { align: 'left' });
+
+      doc.moveTo(margin, margin + 65)
+        .lineTo(margin + usableWidth, margin + 65)
+        .lineWidth(0.5).strokeColor('#e0e0e0').stroke();
     }
 
     function drawTableHeader(y) {
@@ -161,7 +172,7 @@ exports.descargarPDF = async (req, res) => {
     }
 
     function drawFooter(pageNum) {
-      const footerText = `Generado el: ${moment().format('DD-MM-YYYY HH:mm')} • Página ${pageNum}`;
+      const footerText = `Página ${pageNum}`;
       doc.font('Helvetica').fontSize(9).fillColor('gray')
         .text(footerText, margin, pageHeight - margin + 5, {
           width: usableWidth,
@@ -200,7 +211,6 @@ exports.descargarPDF = async (req, res) => {
     }
 
     drawFooter(currentPage);
-
     doc.end();
   } catch (error) {
     console.error('Error al generar PDF:', error);
