@@ -2,6 +2,8 @@ const pool = require('../models/db');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const moment = require('moment');
+const fs = require('fs');
+const path = require('path');
 
 exports.obtenerReportes = async (req, res) => {
     try {
@@ -13,15 +15,15 @@ exports.obtenerReportes = async (req, res) => {
 
         const [rows] = await pool.query(
             `SELECT
-         id,
-         nombre,
-         documento,
-         fecha,
-         horaEntrada AS hora_entrada,
-         horaSalida AS hora_salida
-       FROM visitantes
-       WHERE DATE(fecha) BETWEEN ? AND ?
-       ORDER BY fecha DESC, horaEntrada DESC`,
+                id,
+                nombre,
+                documento,
+                fecha,
+                horaEntrada AS hora_entrada,
+                horaSalida AS hora_salida
+            FROM visitantes
+            WHERE DATE(fecha) BETWEEN ? AND ?
+            ORDER BY fecha DESC, horaEntrada DESC`,
             [fechaInicio, fechaFin]
         );
 
@@ -42,15 +44,15 @@ exports.descargarExcel = async (req, res) => {
 
         const [rows] = await pool.query(
             `SELECT
-         id,
-         nombre,
-         documento,
-         fecha,
-         horaEntrada AS hora_entrada,
-         horaSalida AS hora_salida
-       FROM visitantes
-       WHERE DATE(fecha) BETWEEN ? AND ?
-       ORDER BY fecha DESC, horaEntrada DESC`,
+                id,
+                nombre,
+                documento,
+                fecha,
+                horaEntrada AS hora_entrada,
+                horaSalida AS hora_salida
+            FROM visitantes
+            WHERE DATE(fecha) BETWEEN ? AND ?
+            ORDER BY fecha DESC, horaEntrada DESC`,
             [fechaInicio, fechaFin]
         );
 
@@ -92,57 +94,72 @@ exports.descargarPDF = async (req, res) => {
     try {
         const { fechaInicio, fechaFin } = req.query;
 
+        if (!fechaInicio || !fechaFin) {
+            return res.status(400).json({ error: 'Debes enviar fechaInicio y fechaFin' });
+        }
+
         const [rows] = await pool.query(
-            'SELECT id, nombre, documento, fecha, hora_entrada, hora_salida FROM visitantes WHERE fecha BETWEEN ? AND ?',
+            `SELECT 
+                id, 
+                nombre, 
+                documento, 
+                fecha, 
+                horaEntrada AS hora_entrada, 
+                horaSalida AS hora_salida 
+            FROM visitantes 
+            WHERE DATE(fecha) BETWEEN ? AND ?
+            ORDER BY fecha DESC, horaEntrada DESC`,
             [fechaInicio, fechaFin]
         );
 
-        const doc = new PDFDocument({ margin: 30, size: 'A4' });
-        let filename = `reporte_${moment().format('YYYY-MM-DD')}.pdf`;
-        filename = encodeURIComponent(filename);
+        const doc = new PDFDocument({ margin: 40, size: 'A4' });
+        const filename = `reporte_${moment().format('YYYY-MM-DD')}.pdf`;
 
         res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-type', 'application/pdf');
-
         doc.pipe(res);
 
-        // Título
-        doc.fontSize(18).text('Reporte de Visitantes', { align: 'center' });
-        doc.moveDown(1);
+        const logoPath = path.join(__dirname, '../assets/logo.png'); 
+        if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, 40, 20, { width: 60 });
+        }
 
-        // Encabezados de tabla
-        const tableTop = 100;
-        const colWidths = [40, 100, 100, 80, 80, 80];
+        doc.fontSize(18).text('Reporte de Visitantes', { align: 'center' });
+        doc.moveDown(2);
+
+        const tableTop = 120;
+        const colWidths = [40, 140, 100, 80, 80, 80];
         const headers = ["ID", "Nombre", "Documento", "Fecha", "Entrada", "Salida"];
 
         doc.fontSize(12).fillColor('white');
-        doc.rect(30, tableTop, colWidths.reduce((a,b) => a+b), 20).fill('#333');
+        doc.rect(40, tableTop, colWidths.reduce((a, b) => a + b), 20).fill('#333');
 
-        let x = 30;
+        let x = 40;
         headers.forEach((header, i) => {
-            doc.fillColor('white').text(header, x + 5, tableTop + 5, { width: colWidths[i], align: 'left' });
+            doc.text(header, x + 5, tableTop + 5, { width: colWidths[i], align: 'left' });
             x += colWidths[i];
         });
 
-        // Filas de datos
         let y = tableTop + 20;
         doc.fontSize(10).fillColor('black');
 
         rows.forEach((v, rowIndex) => {
-            x = 30;
-
+            x = 40;
             const fillColor = rowIndex % 2 === 0 ? '#f2f2f2' : '#ffffff';
-            doc.rect(30, y, colWidths.reduce((a,b) => a+b), 20).fill(fillColor);
+            doc.rect(40, y, colWidths.reduce((a, b) => a + b), 20).fill(fillColor);
 
             doc.fillColor('black').text(v.id, x + 5, y + 5, { width: colWidths[0] }); x += colWidths[0];
             doc.text(v.nombre, x + 5, y + 5, { width: colWidths[1] }); x += colWidths[1];
             doc.text(v.documento, x + 5, y + 5, { width: colWidths[2] }); x += colWidths[2];
             doc.text(moment(v.fecha).format('DD-MM-YYYY'), x + 5, y + 5, { width: colWidths[3] }); x += colWidths[3];
-            doc.text(v.hora_entrada, x + 5, y + 5, { width: colWidths[4] }); x += colWidths[4];
+            doc.text(v.hora_entrada || '', x + 5, y + 5, { width: colWidths[4] }); x += colWidths[4];
             doc.text(v.hora_salida || '', x + 5, y + 5, { width: colWidths[5] });
 
             y += 20;
         });
+
+        doc.fontSize(9).fillColor('gray')
+            .text(`Generado el: ${moment().format('DD-MM-YYYY HH:mm')}`, 40, doc.page.height - 40, { align: 'center' });
 
         doc.end();
     } catch (error) {
