@@ -61,6 +61,7 @@ exports.obtenerVisitantesActivos = async (req, res) => {
         documentoVigilante
       FROM visitantes
       WHERE horaSalida IS NULL
+      ORDER BY id DESC
     `);
     res.json(results);
   } catch (err) {
