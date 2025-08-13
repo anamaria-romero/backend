@@ -48,7 +48,20 @@ exports.registrarSalida = async (req, res) => {
 
 exports.obtenerVisitantesActivos = async (req, res) => {
   try {
-    const [results] = await pool.query(`SELECT * FROM visitantes WHERE horaSalida IS NULL`);
+    const [results] = await pool.query(`
+      SELECT 
+        id,
+        documento,
+        nombre,
+        dependencia,
+        funcionario,
+        DATE_FORMAT(fecha, '%Y-%m-%d') AS fecha,
+        horaEntrada,
+        horaSalida,
+        documentoVigilante
+      FROM visitantes
+      WHERE horaSalida IS NULL
+    `);
     res.json(results);
   } catch (err) {
     console.error("Error al obtener visitantes activos:", err);
