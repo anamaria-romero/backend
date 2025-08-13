@@ -1,7 +1,7 @@
 const pool = require('../models/db');
 
 exports.registrarEntrada = async (req, res) => {
-  const { documento, nombre, dependencia, funcionario, fecha, horaEntrada, documentoVigilante } = req.body;
+  const { documento, nombre, dependencia, funcionario, horaEntrada, documentoVigilante } = req.body;
 
   try {
     const [resultados] = await pool.query(
@@ -15,8 +15,8 @@ exports.registrarEntrada = async (req, res) => {
 
     await pool.query(
       `INSERT INTO visitantes (documento, nombre, dependencia, funcionario, fecha, horaEntrada, documentoVigilante)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [documento, nombre, dependencia, funcionario, fecha, horaEntrada, documentoVigilante]
+       VALUES (?, ?, ?, ?, CURDATE(), ?, ?)`,
+      [documento, nombre, dependencia, funcionario, horaEntrada, documentoVigilante]
     );
 
     res.json({ mensaje: 'Entrada registrada correctamente' });
@@ -27,14 +27,13 @@ exports.registrarEntrada = async (req, res) => {
 };
 
 exports.registrarSalida = async (req, res) => {
-  const { documento, fechaSalida, horaSalida } = req.body;
+  const { documento, horaSalida } = req.body; // fechaSalida no se usa
 
   try {
     const [result] = await pool.query(
       `UPDATE visitantes SET horaSalida = ? WHERE documento = ? AND horaSalida IS NULL`,
       [horaSalida, documento]
     );
-
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Visitante no encontrado o ya salió' });
@@ -58,15 +57,28 @@ exports.obtenerVisitantesActivos = async (req, res) => {
 };
 
 exports.reportePorFecha = async (req, res) => {
-  const { fecha } = req.query;
+  const { fecha } = req.query; 
 
   try {
-    const [results] = await pool.query(`
-      SELECT v.*, vi.nombre AS nombreVigilante
+    const [results] = await pool.query(
+      `
+      SELECT 
+        v.id,
+        v.documento,
+        v.nombre,
+        v.dependencia,
+        v.funcionario,
+        DATE_FORMAT(v.fecha, '%Y-%m-%d') AS fecha, -- devolvemos string estable
+        v.horaEntrada,
+        v.horaSalida,
+        vi.nombre AS nombreVigilante
       FROM visitantes v
       LEFT JOIN vigilante vi ON v.documentoVigilante = vi.documento
-      WHERE v.fecha = ?
-    `, [fecha]);
+      WHERE DATE(v.fecha) = ?
+      ORDER BY v.id DESC
+      `,
+      [fecha]
+    );
 
     res.json(results);
   } catch (err) {
@@ -79,13 +91,16 @@ exports.buscarPorDocumento = async (req, res) => {
   const { documento } = req.params;
 
   try {
-    const [results] = await pool.query(`
+    const [results] = await pool.query(
+      `
       SELECT nombre, dependencia, funcionario
       FROM visitantes
       WHERE documento = ?
       ORDER BY id DESC
       LIMIT 1
-    `, [documento]);
+      `,
+      [documento]
+    );
 
     if (results.length === 0) {
       return res.status(404).json({ mensaje: "Visitante no encontrado" });
@@ -114,9 +129,11 @@ exports.actualizarVisitante = async (req, res) => {
 
   try {
     const [result] = await pool.query(
-      `UPDATE visitantes 
-       SET nombre = ?, documento = ?, dependencia = ?, funcionario = ?,
-       WHERE id = ?`,
+      `
+      UPDATE visitantes 
+      SET nombre = ?, documento = ?, dependencia = ?, funcionario = ?
+      WHERE id = ?
+      `,
       [nombre, documento, dependencia, funcionario, id]
     );
 
