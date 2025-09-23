@@ -134,7 +134,6 @@ exports.descargarPDF = async (req, res) => {
     function drawHeader() {
       let titleY = margin;
       
-      // Logo
       if (hasLogo) {
         try {
           doc.image(logoPath, margin, titleY, { width: 60 });

@@ -27,7 +27,7 @@ exports.registrarEntrada = async (req, res) => {
 };
 
 exports.registrarSalida = async (req, res) => {
-  const { documento, horaSalida } = req.body; // fechaSalida no se usa
+  const { documento, horaSalida } = req.body; 
 
   try {
     const [result] = await pool.query(
