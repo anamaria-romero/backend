@@ -17,6 +17,7 @@ exports.obtenerReportes = async (req, res) => {
          id,
          nombre,
          documento,
+         telefono,
          fecha,
          horaEntrada AS hora_entrada,
          horaSalida AS hora_salida
@@ -45,6 +46,7 @@ exports.descargarExcel = async (req, res) => {
          id,
          nombre,
          documento,
+         telefono,
          fecha,
          horaEntrada AS hora_entrada,
          horaSalida AS hora_salida
@@ -61,6 +63,7 @@ exports.descargarExcel = async (req, res) => {
       { header: 'ID', key: 'id', width: 8 },
       { header: 'Nombre', key: 'nombre', width: 30 },
       { header: 'Documento', key: 'documento', width: 20 },
+      { header: 'Teléfono', key: 'telefono', width: 20 },
       { header: 'Fecha', key: 'fecha', width: 15 },
       { header: 'Hora Entrada', key: 'hora_entrada', width: 15 },
       { header: 'Hora Salida', key: 'hora_salida', width: 15 },
@@ -71,6 +74,7 @@ exports.descargarExcel = async (req, res) => {
         id: r.id,
         nombre: r.nombre,
         documento: r.documento,
+        telefono: r.telefono || '',
         fecha: r.fecha ? moment(r.fecha).format('DD-MM-YYYY') : '',
         hora_entrada: r.hora_entrada || '',
         hora_salida: r.hora_salida || ''
@@ -100,6 +104,7 @@ exports.descargarPDF = async (req, res) => {
          id,
          nombre,
          documento,
+         telefono,
          fecha,
          horaEntrada AS hora_entrada,
          horaSalida AS hora_salida
@@ -123,7 +128,7 @@ exports.descargarPDF = async (req, res) => {
     const pageWidth = doc.page.width;
     const pageHeight = doc.page.height;
     const usableWidth = pageWidth - margin * 2;
-    const colWidths = [40, 160, 100, 70, 70, 70]; 
+    const colWidths = [40, 120, 90, 80, 60, 60, 60];
     const rowHeight = 20;
     const headerHeight = 100; 
     const tableTop = margin + headerHeight;
@@ -161,7 +166,7 @@ exports.descargarPDF = async (req, res) => {
       doc.fillColor('white');
       doc.rect(margin, y, usableWidth, rowHeight).fill('#333');
       let x = margin;
-      const headers = ["ID", "Nombre", "Documento", "Fecha", "Entrada", "Salida"];
+      const headers = ["ID", "Nombre", "Documento", "Teléfono", "Fecha", "Entrada", "Salida"];
       doc.font('Helvetica-Bold').fontSize(10).fillColor('white');
       for (let i = 0; i < headers.length; i++) {
         doc.text(headers[i], x + 5, y + 5, { width: colWidths[i], align: 'left' });
@@ -192,9 +197,10 @@ exports.descargarPDF = async (req, res) => {
       doc.text(String(v.id), x + 5, y + 5, { width: colWidths[0], align: 'left' }); x += colWidths[0];
       doc.text(v.nombre || '', x + 5, y + 5, { width: colWidths[1], align: 'left' }); x += colWidths[1];
       doc.text(v.documento || '', x + 5, y + 5, { width: colWidths[2], align: 'left' }); x += colWidths[2];
-      doc.text(v.fecha ? moment(v.fecha).format('DD-MM-YYYY') : '', x + 5, y + 5, { width: colWidths[3], align: 'left' }); x += colWidths[3];
-      doc.text(v.hora_entrada || '', x + 5, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4];
-      doc.text(v.hora_salida || '', x + 5, y + 5, { width: colWidths[5], align: 'left' });
+      doc.text(v.telefono || '', x + 5, y + 5, { width: colWidths[3], align: 'left' }); x += colWidths[3];
+      doc.text(v.fecha ? moment(v.fecha).format('DD-MM-YYYY') : '', x + 5, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4];
+      doc.text(v.hora_entrada || '', x + 5, y + 5, { width: colWidths[5], align: 'left' }); x += colWidths[5];
+      doc.text(v.hora_salida || '', x + 5, y + 5, { width: colWidths[6], align: 'left' });
 
       y += rowHeight;
     }

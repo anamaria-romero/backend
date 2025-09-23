@@ -1,7 +1,7 @@
 const pool = require('../models/db');
 
 exports.registrarEntrada = async (req, res) => {
-  const { documento, nombre, dependencia, funcionario, horaEntrada, documentoVigilante } = req.body;
+  const { documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante } = req.body;
 
   try {
     const [resultados] = await pool.query(
@@ -14,9 +14,9 @@ exports.registrarEntrada = async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO visitantes (documento, nombre, dependencia, funcionario, fecha, horaEntrada, documentoVigilante)
-       VALUES (?, ?, ?, ?, CURDATE(), ?, ?)`,
-      [documento, nombre, dependencia, funcionario, horaEntrada, documentoVigilante]
+      `INSERT INTO visitantes (documento, nombre, telefono, dependencia, funcionario, fecha, horaEntrada, documentoVigilante)
+       VALUES (?, ?, ?, ?, ?, CURDATE(), ?, ?)`,
+      [documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante]
     );
 
     res.json({ mensaje: 'Entrada registrada correctamente' });
@@ -53,6 +53,7 @@ exports.obtenerVisitantesActivos = async (req, res) => {
         id,
         documento,
         nombre,
+        telefono,
         dependencia,
         funcionario,
         DATE_FORMAT(fecha, '%Y-%m-%d') AS fecha,
@@ -80,6 +81,7 @@ exports.reportePorFecha = async (req, res) => {
         v.id,
         v.documento,
         v.nombre,
+        v.telefono,
         v.dependencia,
         v.funcionario,
         DATE_FORMAT(v.fecha, '%Y-%m-%d') AS fecha, -- devolvemos string estable
@@ -107,7 +109,7 @@ exports.buscarPorDocumento = async (req, res) => {
   try {
     const [results] = await pool.query(
       `
-      SELECT nombre, dependencia, funcionario
+      SELECT nombre, telefono, dependencia, funcionario
       FROM visitantes
       WHERE documento = ?
       ORDER BY id DESC
@@ -139,16 +141,16 @@ exports.obtenerTodos = async (req, res) => {
 
 exports.actualizarVisitante = async (req, res) => {
   const { id } = req.params;
-  const { nombre, documento, dependencia, funcionario } = req.body;
+  const { nombre, documento, telefono, dependencia, funcionario } = req.body;
 
   try {
     const [result] = await pool.query(
       `
       UPDATE visitantes 
-      SET nombre = ?, documento = ?, dependencia = ?, funcionario = ?
+      SET nombre = ?, documento = ?, telefono = ?, dependencia = ?, funcionario = ?
       WHERE id = ?
       `,
-      [nombre, documento, dependencia, funcionario, id]
+      [nombre, documento, telefono, dependencia, funcionario, id]
     );
 
     if (result.affectedRows === 0) {
