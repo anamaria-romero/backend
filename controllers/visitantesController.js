@@ -13,11 +13,11 @@ exports.registrarEntrada = async (req, res) => {
       return res.status(400).json({ mensaje: 'Este visitante ya tiene una entrada sin registrar salida.' });
     }
 
-    await pool.query(
-      `INSERT INTO visitantes (documento, nombre, telefono, dependencia, funcionario, fecha, horaEntrada, documentoVigilante)
-       VALUES (?, ?, ?, ?, ?, CURDATE(), ?, ?)`,
-      [documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante]
-    );
+await pool.query(
+  `INSERT INTO visitantes (documento, nombre, telefono, dependencia, funcionario, fecha, horaEntrada, documentoVigilante)
+   VALUES (?, ?, ?, ?, ?, CURDATE(), ?, ?)`,
+  [documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante]
+);
 
     res.json({ mensaje: 'Entrada registrada correctamente' });
   } catch (err) {
