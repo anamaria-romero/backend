@@ -80,7 +80,7 @@ exports.descargarExcel = async (req, res) => {
         nombre: r.nombre,
         documento: r.documento,
         telefono: r.telefono || '',
-        fecha: r.fecha ? moment(r.fecha).format('DD-MM-YYYY') : '',
+        fecha: r.fecha ? moment(r.fecha).tz('America/Bogota').format('DD-MM-YYYY') : '',
         hora_entrada: r.hora_entrada || '',
         hora_salida: r.hora_salida || '',
         nombreVigilante: r.nombreVigilante || ''
