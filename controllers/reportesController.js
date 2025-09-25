@@ -21,9 +21,9 @@ exports.obtenerReportes = async (req, res) => {
          v.fecha,
          v.horaEntrada AS hora_entrada,
          v.horaSalida AS hora_salida,
-         u.nombre AS nombreVigilante
+         vg.nombre AS nombreVigilante
        FROM visitantes v
-       LEFT JOIN usuarios u ON v.documentoVigilante = u.documento
+       LEFT JOIN vigilante vg ON v.documentoVigilante = vg.documento
        WHERE DATE(v.fecha) BETWEEN ? AND ?
        ORDER BY v.fecha DESC, v.horaEntrada DESC`,
       [fechaInicio, fechaFin]
@@ -52,9 +52,9 @@ exports.descargarExcel = async (req, res) => {
          v.fecha,
          v.horaEntrada AS hora_entrada,
          v.horaSalida AS hora_salida,
-         u.nombre AS nombreVigilante
+         vg.nombre AS nombreVigilante
        FROM visitantes v
-       LEFT JOIN usuarios u ON v.documentoVigilante = u.documento
+       LEFT JOIN vigilante vg ON v.documentoVigilante = vg.documento
        WHERE DATE(v.fecha) BETWEEN ? AND ?
        ORDER BY v.fecha DESC, v.horaEntrada DESC`,
       [fechaInicio, fechaFin]
@@ -114,9 +114,9 @@ exports.descargarPDF = async (req, res) => {
          v.fecha,
          v.horaEntrada AS hora_entrada,
          v.horaSalida AS hora_salida,
-         u.nombre AS nombreVigilante
+         vg.nombre AS nombreVigilante
        FROM visitantes v
-       LEFT JOIN usuarios u ON v.documentoVigilante = u.documento
+       LEFT JOIN vigilante vg ON v.documentoVigilante = vg.documento
        WHERE DATE(v.fecha) BETWEEN ? AND ?
        ORDER BY v.fecha DESC, v.horaEntrada DESC`,
       [fechaInicio, fechaFin]
