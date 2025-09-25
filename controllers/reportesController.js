@@ -31,7 +31,7 @@ exports.obtenerReportes = async (req, res) => {
 
     const data = rows.map(r => ({
       ...r,
-      fecha: r.fecha ? moment.utc(r.fecha).tz('America/Bogota').format('DD-MM-YYYY') : ''
+      fecha: r.fecha ? moment(r.fecha).format('DD-MM-YYYY') : '' 
     }));
 
     return res.json(data);
@@ -40,6 +40,7 @@ exports.obtenerReportes = async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
+
 
 exports.descargarExcel = async (req, res) => {
   try {
@@ -82,7 +83,7 @@ exports.descargarExcel = async (req, res) => {
     rows.forEach(r => {
       sheet.addRow({
         ...r,
-        fecha: r.fecha ? moment.utc(r.fecha).tz('America/Bogota').format('DD-MM-YYYY') : ''
+        fecha: r.fecha ? moment(r.fecha).format('DD-MM-YYYY') : '' 
       });
     });
 
@@ -122,10 +123,10 @@ exports.descargarPDF = async (req, res) => {
     );
 
     const totalVisitantes = rows.length;
-    const fechaGeneracion = moment().tz('America/Bogota').format('DD-MM-YYYY HH:mm');
+    const fechaGeneracion = moment().format('DD-MM-YYYY HH:mm'); 
 
     const doc = new PDFDocument({ margin: 40, size: 'A4' });
-    const filename = `reporte_${moment().tz('America/Bogota').format('YYYY-MM-DD')}.pdf`;
+    const filename = `reporte_${moment().format('YYYY-MM-DD')}.pdf`; 
 
     res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-type', 'application/pdf');
@@ -205,7 +206,7 @@ exports.descargarPDF = async (req, res) => {
       doc.text(v.nombre || '', x + 2, y + 5, { width: colWidths[1], align: 'left' }); x += colWidths[1];
       doc.text(v.documento || '', x + 2, y + 5, { width: colWidths[2], align: 'left' }); x += colWidths[2];
       doc.text(v.telefono || '', x + 2, y + 5, { width: colWidths[3], align: 'left' }); x += colWidths[3];
-      doc.text(v.fecha ? moment.utc(v.fecha).tz('America/Bogota').format('DD-MM-YYYY') : '', x + 2, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4];
+      doc.text(v.fecha ? moment(v.fecha).format('DD-MM-YYYY') : '', x + 2, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4]; 
       doc.text(v.hora_entrada || '', x + 2, y + 5, { width: colWidths[5], align: 'left' }); x += colWidths[5];
       doc.text(v.hora_salida || '', x + 2, y + 5, { width: colWidths[6], align: 'left' }); x += colWidths[6];
       doc.text(v.nombreVigilante || '', x + 2, y + 5, { width: colWidths[7], align: 'left' });
