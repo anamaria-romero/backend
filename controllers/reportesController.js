@@ -14,16 +14,18 @@ exports.obtenerReportes = async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT
-         id,
-         nombre,
-         documento,
-         telefono,
-         fecha,
-         horaEntrada AS hora_entrada,
-         horaSalida AS hora_salida
-       FROM visitantes
-       WHERE DATE(fecha) BETWEEN ? AND ?
-       ORDER BY fecha DESC, horaEntrada DESC`,
+         v.id,
+         v.nombre,
+         v.documento,
+         v.telefono,
+         v.fecha,
+         v.horaEntrada AS hora_entrada,
+         v.horaSalida AS hora_salida,
+         u.nombre AS nombreVigilante
+       FROM visitantes v
+       LEFT JOIN usuarios u ON v.documentoVigilante = u.documento
+       WHERE DATE(v.fecha) BETWEEN ? AND ?
+       ORDER BY v.fecha DESC, v.horaEntrada DESC`,
       [fechaInicio, fechaFin]
     );
 
@@ -43,16 +45,18 @@ exports.descargarExcel = async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT
-         id,
-         nombre,
-         documento,
-         telefono,
-         fecha,
-         horaEntrada AS hora_entrada,
-         horaSalida AS hora_salida
-       FROM visitantes
-       WHERE DATE(fecha) BETWEEN ? AND ?
-       ORDER BY fecha DESC, horaEntrada DESC`,
+         v.id,
+         v.nombre,
+         v.documento,
+         v.telefono,
+         v.fecha,
+         v.horaEntrada AS hora_entrada,
+         v.horaSalida AS hora_salida,
+         u.nombre AS nombreVigilante
+       FROM visitantes v
+       LEFT JOIN usuarios u ON v.documentoVigilante = u.documento
+       WHERE DATE(v.fecha) BETWEEN ? AND ?
+       ORDER BY v.fecha DESC, v.horaEntrada DESC`,
       [fechaInicio, fechaFin]
     );
 
@@ -67,6 +71,7 @@ exports.descargarExcel = async (req, res) => {
       { header: 'Fecha', key: 'fecha', width: 15 },
       { header: 'Hora Entrada', key: 'hora_entrada', width: 15 },
       { header: 'Hora Salida', key: 'hora_salida', width: 15 },
+      { header: 'Vigilante', key: 'nombreVigilante', width: 25 },
     ];
 
     rows.forEach(r => {
@@ -77,7 +82,8 @@ exports.descargarExcel = async (req, res) => {
         telefono: r.telefono || '',
         fecha: r.fecha ? moment(r.fecha).format('DD-MM-YYYY') : '',
         hora_entrada: r.hora_entrada || '',
-        hora_salida: r.hora_salida || ''
+        hora_salida: r.hora_salida || '',
+        nombreVigilante: r.nombreVigilante || ''
       });
     });
 
@@ -101,16 +107,18 @@ exports.descargarPDF = async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT
-         id,
-         nombre,
-         documento,
-         telefono,
-         fecha,
-         horaEntrada AS hora_entrada,
-         horaSalida AS hora_salida
-       FROM visitantes
-       WHERE DATE(fecha) BETWEEN ? AND ?
-       ORDER BY fecha DESC, horaEntrada DESC`,
+         v.id,
+         v.nombre,
+         v.documento,
+         v.telefono,
+         v.fecha,
+         v.horaEntrada AS hora_entrada,
+         v.horaSalida AS hora_salida,
+         u.nombre AS nombreVigilante
+       FROM visitantes v
+       LEFT JOIN usuarios u ON v.documentoVigilante = u.documento
+       WHERE DATE(v.fecha) BETWEEN ? AND ?
+       ORDER BY v.fecha DESC, v.horaEntrada DESC`,
       [fechaInicio, fechaFin]
     );
 
@@ -128,7 +136,7 @@ exports.descargarPDF = async (req, res) => {
     const pageWidth = doc.page.width;
     const pageHeight = doc.page.height;
     const usableWidth = pageWidth - margin * 2;
-    const colWidths = [40, 120, 90, 80, 60, 60, 60];
+    const colWidths = [30, 90, 70, 70, 50, 50, 50, 90];
     const rowHeight = 20;
     const headerHeight = 100; 
     const tableTop = margin + headerHeight;
@@ -166,10 +174,10 @@ exports.descargarPDF = async (req, res) => {
       doc.fillColor('white');
       doc.rect(margin, y, usableWidth, rowHeight).fill('#333');
       let x = margin;
-      const headers = ["ID", "Nombre", "Documento", "Teléfono", "Fecha", "Entrada", "Salida"];
-      doc.font('Helvetica-Bold').fontSize(10).fillColor('white');
+      const headers = ["ID", "Nombre", "Documento", "Teléfono", "Fecha", "Entrada", "Salida", "Vigilante"];
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('white');
       for (let i = 0; i < headers.length; i++) {
-        doc.text(headers[i], x + 5, y + 5, { width: colWidths[i], align: 'left' });
+        doc.text(headers[i], x + 2, y + 5, { width: colWidths[i], align: 'left' });
         x += colWidths[i];
       }
       doc.fillColor('black'); 
@@ -191,16 +199,17 @@ exports.descargarPDF = async (req, res) => {
 
       const fillColor = i % 2 === 0 ? '#f8f8f8' : '#ffffff';
       doc.rect(margin, y, usableWidth, rowHeight).fill(fillColor);
-      doc.fillColor('black').font('Helvetica').fontSize(10);
+      doc.fillColor('black').font('Helvetica').fontSize(8);
 
       let x = margin;
-      doc.text(String(v.id), x + 5, y + 5, { width: colWidths[0], align: 'left' }); x += colWidths[0];
-      doc.text(v.nombre || '', x + 5, y + 5, { width: colWidths[1], align: 'left' }); x += colWidths[1];
-      doc.text(v.documento || '', x + 5, y + 5, { width: colWidths[2], align: 'left' }); x += colWidths[2];
-      doc.text(v.telefono || '', x + 5, y + 5, { width: colWidths[3], align: 'left' }); x += colWidths[3];
-      doc.text(v.fecha ? moment(v.fecha).format('DD-MM-YYYY') : '', x + 5, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4];
-      doc.text(v.hora_entrada || '', x + 5, y + 5, { width: colWidths[5], align: 'left' }); x += colWidths[5];
-      doc.text(v.hora_salida || '', x + 5, y + 5, { width: colWidths[6], align: 'left' });
+      doc.text(String(v.id), x + 2, y + 5, { width: colWidths[0], align: 'left' }); x += colWidths[0];
+      doc.text(v.nombre || '', x + 2, y + 5, { width: colWidths[1], align: 'left' }); x += colWidths[1];
+      doc.text(v.documento || '', x + 2, y + 5, { width: colWidths[2], align: 'left' }); x += colWidths[2];
+      doc.text(v.telefono || '', x + 2, y + 5, { width: colWidths[3], align: 'left' }); x += colWidths[3];
+      doc.text(v.fecha ? moment(v.fecha).format('DD-MM-YYYY') : '', x + 2, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4];
+      doc.text(v.hora_entrada || '', x + 2, y + 5, { width: colWidths[5], align: 'left' }); x += colWidths[5];
+      doc.text(v.hora_salida || '', x + 2, y + 5, { width: colWidths[6], align: 'left' }); x += colWidths[6];
+      doc.text(v.nombreVigilante || '', x + 2, y + 5, { width: colWidths[7], align: 'left' });
 
       y += rowHeight;
     }
