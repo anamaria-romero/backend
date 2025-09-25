@@ -18,7 +18,7 @@ exports.obtenerReportes = async (req, res) => {
          v.nombre,
          v.documento,
          v.telefono,
-         DATE_FORMAT(v.fecha, '%Y-%m-%d') AS fecha,
+         v.fecha,
          v.horaEntrada AS hora_entrada,
          v.horaSalida AS hora_salida,
          vg.nombre AS nombreVigilante
@@ -29,7 +29,12 @@ exports.obtenerReportes = async (req, res) => {
       [fechaInicio, fechaFin]
     );
 
-    return res.json(rows);
+    const data = rows.map(r => ({
+      ...r,
+      fecha: r.fecha ? moment.utc(r.fecha).tz('America/Bogota').format('DD-MM-YYYY') : ''
+    }));
+
+    return res.json(data);
   } catch (error) {
     console.error('Error al obtener reportes:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
@@ -49,7 +54,7 @@ exports.descargarExcel = async (req, res) => {
          v.nombre,
          v.documento,
          v.telefono,
-         DATE_FORMAT(v.fecha, '%Y-%m-%d') AS fecha,
+         v.fecha,
          v.horaEntrada AS hora_entrada,
          v.horaSalida AS hora_salida,
          vg.nombre AS nombreVigilante
@@ -74,7 +79,12 @@ exports.descargarExcel = async (req, res) => {
       { header: 'Vigilante', key: 'nombreVigilante', width: 25 },
     ];
 
-    rows.forEach(r => sheet.addRow(r));
+    rows.forEach(r => {
+      sheet.addRow({
+        ...r,
+        fecha: r.fecha ? moment.utc(r.fecha).tz('America/Bogota').format('DD-MM-YYYY') : ''
+      });
+    });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=reportes_visitantes.xlsx');
@@ -100,7 +110,7 @@ exports.descargarPDF = async (req, res) => {
          v.nombre,
          v.documento,
          v.telefono,
-         DATE_FORMAT(v.fecha, '%Y-%m-%d') AS fecha,
+         v.fecha,
          v.horaEntrada AS hora_entrada,
          v.horaSalida AS hora_salida,
          vg.nombre AS nombreVigilante
@@ -195,7 +205,7 @@ exports.descargarPDF = async (req, res) => {
       doc.text(v.nombre || '', x + 2, y + 5, { width: colWidths[1], align: 'left' }); x += colWidths[1];
       doc.text(v.documento || '', x + 2, y + 5, { width: colWidths[2], align: 'left' }); x += colWidths[2];
       doc.text(v.telefono || '', x + 2, y + 5, { width: colWidths[3], align: 'left' }); x += colWidths[3];
-      doc.text(v.fecha || '', x + 2, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4];
+      doc.text(v.fecha ? moment.utc(v.fecha).tz('America/Bogota').format('DD-MM-YYYY') : '', x + 2, y + 5, { width: colWidths[4], align: 'left' }); x += colWidths[4];
       doc.text(v.hora_entrada || '', x + 2, y + 5, { width: colWidths[5], align: 'left' }); x += colWidths[5];
       doc.text(v.hora_salida || '', x + 2, y + 5, { width: colWidths[6], align: 'left' }); x += colWidths[6];
       doc.text(v.nombreVigilante || '', x + 2, y + 5, { width: colWidths[7], align: 'left' });
