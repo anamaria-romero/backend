@@ -163,3 +163,25 @@ exports.actualizarVisitante = async (req, res) => {
     res.status(500).json({ error: "Error al actualizar visitante" });
   }
 };
+
+exports.validarEntrada = async (req, res) => {
+  const { documento } = req.params;
+
+  try {
+    const [resultados] = await pool.query(
+      `SELECT * FROM visitantes WHERE documento = ? AND horaSalida IS NULL`,
+      [documento]
+    );
+
+    if (resultados.length > 0) {
+      return res
+        .status(409)
+        .json({ mensaje: "Este visitante ya tiene una entrada sin registrar salida." });
+    }
+
+    res.json({ mensaje: "Puede ingresar" });
+  } catch (err) {
+    console.error("Error al validar entrada:", err);
+    res.status(500).json({ error: "Error al validar entrada" });
+  }
+};

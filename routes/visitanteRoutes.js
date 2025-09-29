@@ -9,5 +9,6 @@ router.get('/reporte', visitanteController.reportePorFecha);
 router.get('/buscar/:documento', visitanteController.buscarPorDocumento); 
 router.get('/', visitanteController.obtenerTodos);
 router.put('/:id', visitanteController.actualizarVisitante);
+router.get("/entrada/validar/:documento", visitanteController.validarEntrada);
 
 module.exports = router;
