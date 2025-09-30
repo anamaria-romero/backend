@@ -1,7 +1,7 @@
 const pool = require('../models/db');
 
 exports.registrarEntrada = async (req, res) => {
-  const { documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante } = req.body;
+  const { documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante, autorizo_datos } = req.body;
 
   try {
     const [resultados] = await pool.query(
@@ -13,11 +13,11 @@ exports.registrarEntrada = async (req, res) => {
       return res.status(400).json({ mensaje: 'Este visitante ya tiene una entrada sin registrar salida.' });
     }
 
-await pool.query(
-  `INSERT INTO visitantes (documento, nombre, telefono, dependencia, funcionario, fecha, horaEntrada, documentoVigilante)
-   VALUES (?, ?, ?, ?, ?, CURDATE(), ?, ?)`,
-  [documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante]
-);
+    await pool.query(
+      `INSERT INTO visitantes (documento, nombre, telefono, dependencia, funcionario, fecha, horaEntrada, documentoVigilante, autorizo_datos)
+       VALUES (?, ?, ?, ?, ?, CURDATE(), ?, ?, ?)`,
+      [documento, nombre, telefono, dependencia, funcionario, horaEntrada, documentoVigilante, autorizo_datos ? 1 : 0]
+    );
 
     res.json({ mensaje: 'Entrada registrada correctamente' });
   } catch (err) {
